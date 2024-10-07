@@ -29,6 +29,6 @@ THIS PROJECT IS NOT OWNED, COMMISSIONED BY OR ASSOCIATED WITH HAMMERHEAD OR SRAM
 
 Ant++ are openly available software posted on Ant downloads page and comes with the Apache 2.0 license or the FIT protocol license. Check license in Ant web.
 
-It's mandatory to respect license terms from parties mentioned.
+It's mandatory to respect license terms and copyright from parties mentioned.
 
 https://github.com/lockevod/KRemote/
