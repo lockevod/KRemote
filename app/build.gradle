@@ -1,0 +1,112 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+private def loadLocalProperties() {
+    Properties properties = new Properties()
+    def localPropertiesFile = project.rootProject.file('local.properties')
+    if(!localPropertiesFile.exists()){
+        localPropertiesFile.createNewFile()
+    }
+    properties.load(localPropertiesFile.newDataInputStream())
+    return properties
+}
+
+def properties = loadLocalProperties()
+
+android {
+    signingConfigs {
+        release {
+            if(!properties.getProperty("RELEASE_STORE_FILE", "").empty){
+                storeFile file(properties.getProperty("RELEASE_STORE_FILE", ""))
+                storePassword properties.getProperty("RELEASE_STORE_PASSWORD", "")
+                keyAlias properties.getProperty("RELEASE_KEY_ALIAS", "")
+                keyPassword properties.getProperty("RELEASE_KEY_PASSWORD", "")
+            }
+        }
+    }
+
+    namespace 'com.enderthor.kremote'
+    compileSdk 32
+
+    defaultConfig {
+        applicationId "com.enderthor.kremote"
+        minSdk 32
+        targetSdk 34
+		
+        versionCode properties.getProperty("VERSION_CODE", "1") as int
+        versionName properties.getProperty("VERSION_NAME", "v0.1")
+		
+        archivesBaseName = "kremote-$versionName"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+            shrinkResources true
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    lint {
+        checkAllWarnings true
+        //enable 'deprecation'
+    }
+
+    testOptions {
+        unitTests.includeAndroidResources = true
+        unitTests.all {
+            useJUnitPlatform()
+            reports {
+                junitXml.enabled = true
+                html.enabled = false
+            }
+            testLogging {
+                events "passed", "skipped", "failed"
+            }
+        }
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+    buildFeatures {
+        aidl true
+        buildConfig true
+    }
+
+}
+
+configurations {
+    all {
+        exclude group: 'androidx.lifecycle', module: 'lifecycle-viewmodel-ktx'
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            def requested = details.requested
+            if (requested.group == "androidx") {
+                if (!requested.name.startsWith("multidex")) {
+                    details.useVersion "${targetSdk}.+"
+                }
+            }
+        }
+    }
+}
+dependencies {
+    //noinspection GradleDependency
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    //noinspection GradleDependency
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation files('libs/antpluginlib_3-9-0.aar')
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+}
