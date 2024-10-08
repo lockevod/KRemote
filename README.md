@@ -26,4 +26,4 @@ Sometimes app isn't working fine. You've to stop de app and start again.
 Sometimes screens change fast or several times. I'll try to improve this in next versions, but it's not a big issue now.
 
 ## Other
-We don't have a SKD for Karoo and we cannot detect when the ride stards (then the app is always on and simulates physical buttons).
+We don't have a SKD for Karoo and we cannot detect when the ride starts (then the app is always on and simulates physical buttons).
