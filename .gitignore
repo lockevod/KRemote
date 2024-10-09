@@ -3,3 +3,6 @@
 /.idea/
 /.gradle/
 /app/release/
+/.kotlin/errors/
+/.kotlin/sessions/
+/build/

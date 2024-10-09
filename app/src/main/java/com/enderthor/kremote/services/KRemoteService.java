@@ -41,7 +41,7 @@ public class KRemoteService extends Service {
         try {
             accessEnabled = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED);
         } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
+            Timber.e(e);
         }
         return accessEnabled != 0;
     }

@@ -29,26 +29,19 @@ public class KRemoteApplication extends Application {
             handler.post(() -> {
 
             });
-            /*
-            handler.post(() -> {
-
-            });
-            */
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             Timber.d("Service disconnected");
             service = null;
-            registeredWithService = false;
         }
     };
 
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private boolean serviceBound;
     private IKRemoteService service;
-    private boolean registeredWithService;
+
 
     @Override
     public void onCreate() {
@@ -77,7 +70,7 @@ public class KRemoteApplication extends Application {
 
         Timber.d("KRemoteApplication started");
 
-        serviceBound = bindService(KRemoteService.getIntent(), serviceConnection, BIND_AUTO_CREATE);
+        bindService(KRemoteService.getIntent(), serviceConnection, BIND_AUTO_CREATE);
     }
     private void checkAccessibilityPermission() {
         int accessEnabled = 0;
@@ -85,7 +78,7 @@ public class KRemoteApplication extends Application {
         try {
             accessEnabled = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED);
         } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
+            Timber.e(e);
         }
         if (accessEnabled == 0) {
 
