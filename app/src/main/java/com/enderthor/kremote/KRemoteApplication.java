@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -28,6 +29,11 @@ public class KRemoteApplication extends Application {
             handler.post(() -> {
 
             });
+            /*
+            handler.post(() -> {
+
+            });
+            */
         }
 
         @Override
@@ -39,7 +45,7 @@ public class KRemoteApplication extends Application {
     };
 
 
-    private final Handler handler = new Handler();
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean serviceBound;
     private IKRemoteService service;
     private boolean registeredWithService;

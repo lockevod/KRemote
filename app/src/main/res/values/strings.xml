@@ -1,8 +1,6 @@
 <resources>
     <string name="app_name">KRemote</string>
     <string name="text_main_message">Remote for Karoo</string>
-    <string name="messages">Status Accessibility %s</string>
-    <string name="messages2">Status GRemote %s</string>
     <string name="text_long">KRemote allows to use GRemote \nPress any button in GRemote to connect, you only need to open this app the first time.Kremote auto-starts when Karoo starts, then push a button in GRemote and wait until GRemote flashing green several times.\n\nAccessibility has to be enabled (mandatory), if you didn\'t allow, you\'ve to stop app (o reinstall) and allow it.
     </string>
 

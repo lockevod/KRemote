@@ -14,13 +14,11 @@
         android:text="@string/text_main_message" />
 
     <TextView
-        android:id="@+id/version"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="" />
 
     <TextView
-        android:id="@+id/messages"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:justificationMode="inter_word"
