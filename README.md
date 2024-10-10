@@ -17,8 +17,8 @@ App autostarts every time and you only need to allow availability services first
 ## Buttons
 Apps is configured by default:
 
-- Left Button =>> Back Button (several actions, depends on the current Karoo status.. back, etc).
-- Right Button ==> Next screen or item. Double tap left screen or item.
+- Left Button =>> Back Button (several actions, depends on the current Karoo screen.. back, zoom leveletc).
+- Right Button ==> Next screen or item. 
 - Upper Button ==> Zoom IN or Enter (depends on the Karoo screen)
 
 ## Know Bugs
