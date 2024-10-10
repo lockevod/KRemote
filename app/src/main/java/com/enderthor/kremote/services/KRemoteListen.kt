@@ -7,29 +7,28 @@ import android.app.admin.DeviceAdminReceiver
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Path
-import android.os.CountDownTimer
+//import android.os.CountDownTimer
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityEvent
+import com.enderthor.kremote.RemoteKey
 
-import com.enderthor.kremote.utils.KarooKey
 import timber.log.Timber
 
 class KRemoteListen: AccessibilityService() {
     class SpecialDeviceAdminReceiver: DeviceAdminReceiver()
 
-    private var PressRepeatCount = 0
+    //private var pressRepeatCount = 0
     var bServiceRunning: Boolean = false
     private var deviceAdminReceiver: ComponentName? = null
-    private var timer = object : CountDownTimer(4000, 10000) {
+   /* private var timer = object : CountDownTimer(4000, 10000) {
 
         override fun onTick(millisUntilFinished: Long) {
         }
-
         override fun onFinish() {
-            PressRepeatCount = 0
+            pressRepeatCount = 0
         }
     }
-
+    */
     private fun executegesture (startime: Int, duration: Int, path: Path,gestureBuilder: GestureDescription.Builder )
     {
         gestureBuilder.addStroke(StrokeDescription(path, startime.toLong(), duration.toLong()))
@@ -53,13 +52,13 @@ class KRemoteListen: AccessibilityService() {
 
         dispatchGesture(gestureBuilder.build(), object : GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription) {
-                Timber.d("Swipe Gesture Completed")
+                Timber.d("DoubleTap Gesture Completed")
                 super.onCompleted(gestureDescription)
             }
         }, null)
     }
 
-    private fun swipescreen (karoobutton: KarooKey)
+    private fun swipescreen (karoobutton: RemoteKey)
     {
         val displayMetrics = resources.displayMetrics
         val middleYValue = displayMetrics.heightPixels / 2
@@ -73,27 +72,35 @@ class KRemoteListen: AccessibilityService() {
         val duration = 50
         var repeat = false
 
+        // determine action
         when (karoobutton) {
-            KarooKey.BACK ->{
+            RemoteKey.BACK ->{
                 Timber.d("BACK button pressed!")
                 performGlobalAction(GLOBAL_ACTION_BACK)
                 return
             }
-            KarooKey.RIGHT -> {
+            RemoteKey.RIGHT -> {
+                Timber.d("RIGHT remote pressed one time only!")
+                path.moveTo(rightSizeOfScreen.toFloat(), middleYValue.toFloat())
+                path.lineTo(leftSideOfScreen.toFloat(), middleYValue.toFloat())
+                /*
                 timer.cancel()
-                PressRepeatCount += 1
+                pressRepeatCount += 1
                 timer.start()
 
-                if (PressRepeatCount < 2) {
+                if (pressRepeatCount < 2) {
+                    Timber.d("RIGHT remote pressed one time only!")
                     path.moveTo(rightSizeOfScreen.toFloat(), middleYValue.toFloat())
                     path.lineTo(leftSideOfScreen.toFloat(), middleYValue.toFloat())
-                } else {
+                }
+               else {
                     Timber.d("RIGHT remote pressed two times in succession!")
                     path.moveTo(leftSideOfScreen.toFloat(), middleYValue.toFloat())
                     path.lineTo(rightSizeOfScreen.toFloat(), middleYValue.toFloat())
-                }
+                }*/
             }
-            KarooKey.VIRTUAL_SWITCH_TO_MAP_PAGE -> {
+            RemoteKey.MIDDLE -> {
+                Timber.d("Map button pressed!")
                 path.moveTo(middleXValue.toFloat(), middleYValue.toFloat())
                 repeat = true
             }
@@ -121,7 +128,7 @@ class KRemoteListen: AccessibilityService() {
         var bServiceRunning: Boolean = false
         @JvmStatic var instance: KRemoteListen? = null
     }
-    fun doActionKarooScreen(karoobutton: KarooKey) {
+    fun doActionKarooScreen(karoobutton: RemoteKey) {
         if (bGetServiceStatus()) {
             swipescreen(karoobutton)
         }

@@ -25,23 +25,20 @@ public class KRemoteApplication extends Application {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             Timber.d("Service connected");
-            service = IKRemoteService.Stub.asInterface(binder);
+            IKRemoteService.Stub.asInterface(binder);
             handler.post(() -> {
-
             });
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             Timber.d("Service disconnected");
-            service = null;
+            //service = null;
         }
     };
 
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private IKRemoteService service;
-
 
     @Override
     public void onCreate() {

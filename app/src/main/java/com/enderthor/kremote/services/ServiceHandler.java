@@ -9,14 +9,14 @@ import timber.log.Timber;
 
 public class ServiceHandler {
 
-    private final Thread thread;
     private Looper looper;
     private Handler handler;
 
     public ServiceHandler() {
-        thread = new Thread(() -> {
+        Thread thread = new Thread(() -> {
             Looper.prepare();
             this.looper = Looper.myLooper();
+            assert this.looper != null;
             this.handler = new RunnableHandler(this.looper);
             Looper.loop();
         }, "ServiceHandler");

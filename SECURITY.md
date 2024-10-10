@@ -2,4 +2,4 @@
 
 ## Reporting a Vulnerability
 
-Any security reporte will be studied, please submit an issue. Thanks.
+Any security report will be studied, please submit an issue. Thanks.

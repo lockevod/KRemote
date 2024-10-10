@@ -8,17 +8,15 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.content.ContentResolver;
 
-import java.util.EnumSet;
 import java.util.Objects;
 
-import com.enderthor.kremote.utils.KarooKey;
+import com.enderthor.kremote.RemoteKey;
 
 import com.dsi.ant.plugins.antplus.pcc.controls.AntPlusGenericControllableDevicePcc;
 import com.dsi.ant.plugins.antplus.pccbase.PccReleaseHandle;
 import com.dsi.ant.plugins.antplus.pcc.controls.defines.CommandStatus;
 import com.dsi.ant.plugins.antplus.pcc.controls.defines.GenericCommandNumber;
 import com.dsi.ant.plugins.antplus.pcc.defines.DeviceState;
-import com.dsi.ant.plugins.antplus.pcc.defines.EventFlag;
 import com.dsi.ant.plugins.antplus.pcc.defines.RequestAccessResult;
 import com.dsi.ant.plugins.antplus.pccbase.AntPluginPcc;
 
@@ -50,64 +48,50 @@ public class KRemoteService extends Service {
     private ServiceHandler serviceHandler;
 
 
-    //ANT REmote start
+    //ANT Remote Code
     private AntPlusGenericControllableDevicePcc remotePcc = null;
     private PccReleaseHandle<AntPlusGenericControllableDevicePcc> remoteReleaseHandle = null;
     private PccReleaseHandle<AntPlusGenericControllableDevicePcc> remoteReleaseHandle2 = null;
 
 
-    private final AntPluginPcc.IPluginAccessResultReceiver<AntPlusGenericControllableDevicePcc> mRemoteResultReceiver = new AntPluginPcc.IPluginAccessResultReceiver<AntPlusGenericControllableDevicePcc>()
-    {
-        @Override
-        public void onResultReceived(AntPlusGenericControllableDevicePcc result,
-                                     RequestAccessResult resultCode, DeviceState initialDeviceState)
-        {
-            if (resultCode == RequestAccessResult.SUCCESS) {
-                remotePcc = result;
-                Timber.d( "[Remote]" + result.getDeviceName() + ": " + initialDeviceState + "antnumber : " + result.getAntDeviceNumber());
+    private final AntPluginPcc.IPluginAccessResultReceiver<AntPlusGenericControllableDevicePcc> mRemoteResultReceiver = (result, resultCode, initialDeviceState) -> {
+        if (resultCode == RequestAccessResult.SUCCESS) {
+            remotePcc = result;
+            Timber.d("[Remote]" + result.getDeviceName() + ": " + initialDeviceState + "antnumber : " + result.getAntDeviceNumber());
+        }
+    };
+
+    private final AntPluginPcc.IDeviceStateChangeReceiver mRemoteDeviceStateChangeReceiver = newDeviceState -> {
+        Timber.d( remotePcc.getDeviceName() + " onDeviceStateChange:" + newDeviceState);
+        if(newDeviceState == DeviceState.DEAD) remote_key2();
+    };
+
+    private final AntPlusGenericControllableDevicePcc.IGenericCommandReceiver mRemoteCommand = (estTimestamp, eventFlags, serialNumber, manufacturerID, sequenceNumber, commandNumber) -> {
+        Thread threadCommand=  new Thread(() -> {
+            //Check buttons and fire actions defined in KRemoteListen
+            if (commandNumber == GenericCommandNumber.MENU_DOWN) {
+                Timber.d("RIGHT");
+                if (KRemoteListen.bServiceRunning || isAccessServiceEnabled()) {
+                    Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(RemoteKey.RIGHT);
+                }
             }
-        }
-    };
-
-    private final AntPluginPcc.IDeviceStateChangeReceiver mRemoteDeviceStateChangeReceiver = new AntPluginPcc.IDeviceStateChangeReceiver() {
-        @Override
-        public void onDeviceStateChange(final DeviceState newDeviceState)
-        {
-            Timber.d( remotePcc.getDeviceName() + " onDeviceStateChange:" + newDeviceState);
-            if(newDeviceState == DeviceState.DEAD) remote_key2();
-        }
-    };
-
-    private final AntPlusGenericControllableDevicePcc.IGenericCommandReceiver mRemoteCommand = new AntPlusGenericControllableDevicePcc.IGenericCommandReceiver () {
-        @Override
-        public CommandStatus onNewGenericCommand(final long estTimestamp, final EnumSet<EventFlag> eventFlags, final int serialNumber,
-                                                 final int manufacturerID, final int sequenceNumber, final GenericCommandNumber commandNumber) {
-            Thread threadCommand=  new Thread(() -> {
-
-                if (commandNumber == GenericCommandNumber.MENU_DOWN) {
-                    Timber.d("RIGHT");
-                    if (KRemoteListen.bServiceRunning || isAccessServiceEnabled()) {
-                        Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(KarooKey.RIGHT);
-                    }
+            if (commandNumber == GenericCommandNumber.LAP) {
+                Timber.d("BACK");
+                if (KRemoteListen.bServiceRunning || isAccessServiceEnabled()) {
+                    Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(RemoteKey.BACK);
                 }
-                if (commandNumber == GenericCommandNumber.LAP) {
-                    Timber.d("LAP");
-                    if (KRemoteListen.bServiceRunning || isAccessServiceEnabled()) {
-                        Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(KarooKey.BACK);
-                    }
-                }
+            }
 
-                if (commandNumber == GenericCommandNumber.UNRECOGNIZED) {
-                    Timber.d("MAP");
-                    if (KRemoteListen.bServiceRunning || isAccessServiceEnabled()) {
-                        Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(KarooKey.VIRTUAL_SWITCH_TO_MAP_PAGE);
-                    }
+            if (commandNumber == GenericCommandNumber.UNRECOGNIZED) {
+                Timber.d("MAP");
+                if (KRemoteListen.bServiceRunning || isAccessServiceEnabled()) {
+                    Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(RemoteKey.MIDDLE);
                 }
+            }
 
-            });
-            threadCommand.start();
-            return CommandStatus.PASS;
-        }
+        });
+        threadCommand.start();
+        return CommandStatus.PASS;
     };
 
     // ANT end
@@ -132,16 +116,13 @@ public class KRemoteService extends Service {
     }
     private void remote_key2()
     {
+        // Not the most "clean" option, but it's a trick that works ;)
         close_ant_handler(remoteReleaseHandle2);
         remoteReleaseHandle2 = AntPlusGenericControllableDevicePcc.requestAccess(this, mRemoteResultReceiver, mRemoteDeviceStateChangeReceiver, mRemoteCommand, 0);
     }
     private void close_ant_handler(PccReleaseHandle<AntPlusGenericControllableDevicePcc> remHandle)
     {
-        if (remHandle!=null)
-        {
-            remHandle.close();
-            remHandle=null;
-        }
+        if (remHandle!=null) remHandle.close();
     }
 
     @Override
