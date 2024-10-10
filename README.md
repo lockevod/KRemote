@@ -24,6 +24,6 @@ Apps is configured by default:
 ## Know Bugs
 - Sometimes app isn't working fine. You've to stop de app and start again.
 - Sometimes screens change fast or several times. I'll try to improve this in next versions, but it's not a big issue now.
-
+- APP DOESN'T WORK IF YOU DON'T ALLOW AVAILABILITY SERVICES. If you forgot it, you can solve (easy method) reinstalling and reopen the app (and allow the availability)
 ## Other
-We don't have a SDK for Karoo and we cannot detect when the ride starts (then the app is always on and simulates physical buttons).
+Remote only works in Ride App (this is done programmatically)

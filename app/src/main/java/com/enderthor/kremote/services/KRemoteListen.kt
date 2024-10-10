@@ -3,7 +3,6 @@ package com.enderthor.kremote.services
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.accessibilityservice.GestureDescription.StrokeDescription
-import android.app.admin.DeviceAdminReceiver
 import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Path
@@ -15,11 +14,10 @@ import com.enderthor.kremote.RemoteKey
 import timber.log.Timber
 
 class KRemoteListen: AccessibilityService() {
-    class SpecialDeviceAdminReceiver: DeviceAdminReceiver()
 
     //private var pressRepeatCount = 0
     var bServiceRunning: Boolean = false
-    private var deviceAdminReceiver: ComponentName? = null
+    var isRideActivityProcess: Boolean = false
    /* private var timer = object : CountDownTimer(4000, 10000) {
 
         override fun onTick(millisUntilFinished: Long) {
@@ -29,6 +27,7 @@ class KRemoteListen: AccessibilityService() {
         }
     }
     */
+
     private fun executegesture (startime: Int, duration: Int, path: Path,gestureBuilder: GestureDescription.Builder )
     {
         gestureBuilder.addStroke(StrokeDescription(path, startime.toLong(), duration.toLong()))
@@ -113,7 +112,6 @@ class KRemoteListen: AccessibilityService() {
     }
     override fun onCreate() {
         super.onCreate()
-        deviceAdminReceiver = ComponentName(this, SpecialDeviceAdminReceiver::class.java)
         Timber.d("Accessibility Service created")
     }
 
@@ -129,11 +127,25 @@ class KRemoteListen: AccessibilityService() {
         @JvmStatic var instance: KRemoteListen? = null
     }
     fun doActionKarooScreen(karoobutton: RemoteKey) {
-        if (bGetServiceStatus()) {
+        Timber.d("%s%s", "Check On Ride ", isRideActivityProcess)
+        if (bGetServiceStatus() && isRideActivityProcess) {
             swipescreen(karoobutton)
         }
     }
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            if (event.packageName != null && event.className != null) {
+                val componentName = ComponentName(
+                    event.packageName.toString(),
+                    event.className.toString()
+                )
+                isRideActivityProcess =  componentName.flattenToShortString().contains("io.hammerhead.rideapp") || componentName.flattenToShortString().contains("com.android.systemui")
+                Timber.d("%s%s", "Ride activity status: ", isRideActivityProcess)
+                Timber.d("%s%s", "Activity name: ", componentName.flattenToShortString())
+            }
+        }
+    }
+
     override fun onInterrupt() {
         bServiceRunning = false
         Timber.d( "Accessibility Service OnInterrupt")
