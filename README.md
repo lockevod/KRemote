@@ -22,8 +22,7 @@ Apps is configured by default:
 - Upper Button ==> Zoom IN or Enter (depends on the Karoo screen)
 
 ## Know Bugs
-- Sometimes app isn't working fine. You've to stop de app and start again.
-- Sometimes screens change fast or several times. I'll try to improve this in next versions, but it's not a big issue now.
+- Sometimes app isn't working fine. You've to stop the app and re-start again (you can do this from karoo menu).
 - APP DOESN'T WORK IF YOU DON'T ALLOW AVAILABILITY SERVICES. If you forgot it, you can solve (easy method) reinstalling and reopen the app (and allow the availability)
 ## Other
 Remote only works in Ride App (this is done programmatically)
