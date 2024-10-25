@@ -3,7 +3,7 @@ package com.enderthor.kremote;
 /**
  * Represents a button in Remote.
  */
-public enum RemoteKey {
+public enum KRemoteKeys {
 
     /**
      * Right key.
@@ -15,10 +15,8 @@ public enum RemoteKey {
      */
     BACK,
 
-
     /**
      * Middle up key
      */
     MIDDLE
-
 }

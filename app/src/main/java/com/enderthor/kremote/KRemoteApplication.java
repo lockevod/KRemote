@@ -26,14 +26,12 @@ public class KRemoteApplication extends Application {
         public void onServiceConnected(ComponentName name, IBinder binder) {
             Timber.d("Service connected");
             IKRemoteService.Stub.asInterface(binder);
-            handler.post(() -> {
-            });
+            handler.post(() -> {});
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             Timber.d("Service disconnected");
-            //service = null;
         }
     };
 
@@ -45,7 +43,9 @@ public class KRemoteApplication extends Application {
         super.onCreate();
         checkAccessibilityPermission();
         if (BuildConfig.DEBUG) {
-            Timber.plant(new Timber.DebugTree() {
+            // noinspection DataFlowIssue
+            Timber.plant((Timber.Tree) (Object) new Timber.DebugTree() {
+
                 @Override
                 protected void log(int priority, @Nullable String tag, @NonNull String message, @Nullable Throwable t) {
                     Log.println(priority, tag, message + (t == null ? "" : "\n" + t.getMessage() + "\n" + Log.getStackTraceString(t)));
@@ -70,6 +70,7 @@ public class KRemoteApplication extends Application {
         bindService(KRemoteService.getIntent(), serviceConnection, BIND_AUTO_CREATE);
     }
     private void checkAccessibilityPermission() {
+        Timber.d("Checking accessibility permission");
         int accessEnabled = 0;
         ContentResolver contentResolver = getContentResolver();
         try {
@@ -86,7 +87,6 @@ public class KRemoteApplication extends Application {
     }
     @Override
     public void onTerminate() {
-
         Timber.d("KRemoteApplication terminated");
         super.onTerminate();
     }

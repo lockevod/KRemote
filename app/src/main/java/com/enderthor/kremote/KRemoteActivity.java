@@ -4,8 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.widget.TextView;
 
-
-public class MainActivity extends Activity
+public class KRemoteActivity extends Activity
 {
     @Override
     protected void onCreate(Bundle savedInstanceState)

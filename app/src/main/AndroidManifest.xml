@@ -9,7 +9,7 @@
         android:supportsRtl="true"
         tools:targetApi="34">
         <activity
-            android:name=".MainActivity"
+            android:name=".KRemoteActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

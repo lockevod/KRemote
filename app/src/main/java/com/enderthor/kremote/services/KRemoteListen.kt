@@ -9,15 +9,21 @@ import android.graphics.Path
 //import android.os.CountDownTimer
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityEvent
-import com.enderthor.kremote.RemoteKey
+import com.enderthor.kremote.KRemoteKeys
 
 import timber.log.Timber
+
 
 class KRemoteListen: AccessibilityService() {
 
     //private var pressRepeatCount = 0
-    var bServiceRunning: Boolean = false
-    var isRideActivityProcess: Boolean = false
+    internal var isRideActivityProcess: Boolean = false
+    internal var timing: Long = 100
+    internal var term: Long = 50
+
+    companion object {
+        @JvmStatic var instance: KRemoteListen? = null
+    }
    /* private var timer = object : CountDownTimer(4000, 10000) {
 
         override fun onTick(millisUntilFinished: Long) {
@@ -28,9 +34,17 @@ class KRemoteListen: AccessibilityService() {
     }
     */
 
-    private fun executegesture (startime: Int, duration: Int, path: Path,gestureBuilder: GestureDescription.Builder )
+
+    private fun executegesture (path: Path, gestureBuilder: GestureDescription.Builder, doublet: Boolean )
     {
-        gestureBuilder.addStroke(StrokeDescription(path, startime.toLong(), duration.toLong()))
+        if (doublet)
+        {
+            val stroke = StrokeDescription(path,0, ViewConfiguration.getTapTimeout().toLong())
+            gestureBuilder.addStroke(stroke)
+            gestureBuilder.addStroke(StrokeDescription(stroke.path,stroke.duration + 40,stroke.duration,stroke.willContinue()))
+        }
+        else gestureBuilder.addStroke(StrokeDescription(path, timing, term))
+
         dispatchGesture(gestureBuilder.build(), object : GestureResultCallback() {
             override fun onCompleted(gestureDescription: GestureDescription) {
                 Timber.d("Swipe Gesture Completed")
@@ -39,25 +53,7 @@ class KRemoteListen: AccessibilityService() {
         }, null)
     }
 
-    private fun doubletap (path: Path,gestureBuilder: GestureDescription.Builder )
-    {
-        var time: Long= 0
-        val stroke = StrokeDescription(path,0, ViewConfiguration.getTapTimeout().toLong())
-        gestureBuilder.addStroke(stroke)
-
-        time += stroke.duration + 40
-
-        gestureBuilder.addStroke(StrokeDescription(stroke.path,time,stroke.duration,stroke.willContinue()))
-
-        dispatchGesture(gestureBuilder.build(), object : GestureResultCallback() {
-            override fun onCompleted(gestureDescription: GestureDescription) {
-                Timber.d("DoubleTap Gesture Completed")
-                super.onCompleted(gestureDescription)
-            }
-        }, null)
-    }
-
-    private fun swipescreen (karoobutton: RemoteKey)
+    private fun swipescreen (karoobutton: KRemoteKeys)
     {
         val displayMetrics = resources.displayMetrics
         val middleYValue = displayMetrics.heightPixels / 2
@@ -67,18 +63,17 @@ class KRemoteListen: AccessibilityService() {
         val gestureBuilder = GestureDescription.Builder()
 
         val path = Path()
-        val startime  = 100
-        val duration = 50
         var repeat = false
 
         // determine action
-        when (karoobutton) {
-            RemoteKey.BACK ->{
+        when (karoobutton)
+        {
+            KRemoteKeys.BACK ->{
                 Timber.d("BACK button pressed!")
                 performGlobalAction(GLOBAL_ACTION_BACK)
                 return
             }
-            RemoteKey.RIGHT -> {
+            KRemoteKeys.RIGHT -> {
                 Timber.d("RIGHT remote pressed one time only!")
                 path.moveTo(rightSizeOfScreen.toFloat(), middleYValue.toFloat())
                 path.lineTo(leftSideOfScreen.toFloat(), middleYValue.toFloat())
@@ -98,37 +93,34 @@ class KRemoteListen: AccessibilityService() {
                     path.lineTo(rightSizeOfScreen.toFloat(), middleYValue.toFloat())
                 }*/
             }
-            RemoteKey.MIDDLE -> {
+            KRemoteKeys.MIDDLE -> {
                 Timber.d("Map button pressed!")
                 path.moveTo(middleXValue.toFloat(), middleYValue.toFloat())
                 repeat = true
             }
-            else -> { return}
+            else -> {
+                Timber.d("Action/Button not valid")
+                return
+            }
         }
 
-        if (repeat) doubletap(path,gestureBuilder)
-        else  executegesture(startime,duration,path,gestureBuilder)
+        executegesture(path,gestureBuilder,repeat)
 
     }
     override fun onCreate() {
-        super.onCreate()
         Timber.d("Accessibility Service created")
+        super.onCreate()
     }
 
     override fun onServiceConnected() {
-        super.onServiceConnected()
         Timber.d( "Accessibility Service connected")
-        bServiceRunning = true
         instance = this
+        super.onServiceConnected()
     }
-    companion object {
-        @JvmField
-        var bServiceRunning: Boolean = false
-        @JvmStatic var instance: KRemoteListen? = null
-    }
-    fun doActionKarooScreen(karoobutton: RemoteKey) {
+
+    fun doActionKarooScreen(karoobutton: KRemoteKeys) {
         Timber.d("%s%s", "Check On Ride ", isRideActivityProcess)
-        if (bGetServiceStatus() && isRideActivityProcess) {
+        if (isRideActivityProcess) {
             swipescreen(karoobutton)
         }
     }
@@ -147,15 +139,10 @@ class KRemoteListen: AccessibilityService() {
     }
 
     override fun onInterrupt() {
-        bServiceRunning = false
         Timber.d( "Accessibility Service OnInterrupt")
     }
     override fun onUnbind(intent: Intent?): Boolean {
-        bServiceRunning = false
         Timber.d( "Accessibility Service Unbind")
         return super.onUnbind(intent)
-    }
-    fun bGetServiceStatus(): Boolean {
-        return bServiceRunning
     }
 }
