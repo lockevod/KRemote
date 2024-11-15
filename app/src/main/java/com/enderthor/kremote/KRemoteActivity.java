@@ -20,4 +20,6 @@ public class KRemoteActivity extends Activity
         TextView textViewVersion = findViewById(R.id.bar);
         textViewVersion.setText(text);
     }
+
+
 }

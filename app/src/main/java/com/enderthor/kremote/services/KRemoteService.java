@@ -8,8 +8,10 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.content.ContentResolver;
 
+import java.util.EnumSet;
 import java.util.Objects;
 
+import com.dsi.ant.plugins.antplus.pcc.defines.EventFlag;
 import com.enderthor.kremote.KRemoteKeys;
 
 import com.dsi.ant.plugins.antplus.pcc.controls.AntPlusGenericControllableDevicePcc;
@@ -67,30 +69,13 @@ public class KRemoteService extends Service {
 
     private final AntPluginPcc.IDeviceStateChangeReceiver mRemoteDeviceStateChangeReceiver = newDeviceState -> {
         Timber.d( remotePcc.getDeviceName() + " onDeviceStateChange:" + newDeviceState);
-        if(newDeviceState == DeviceState.DEAD) remote_key();
-    };
-
-    private final AntPlusGenericControllableDevicePcc.IGenericCommandReceiver mRemoteCommand = (estTimestamp, eventFlags, serialNumber, manufacturerID, sequenceNumber, commandNumber) -> {
-
-        if(!isAccessServiceEnabled) isAccessServiceEnabled=checkAccessServiceEnabled();
-        Timber.d("isAccessServiceEnabled : %s", isAccessServiceEnabled );
-        if(isAccessServiceEnabled) {
-            if (commandNumber == GenericCommandNumber.MENU_DOWN) {
-                Timber.d("RIGHT");
-                Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(KRemoteKeys.RIGHT);
-            }
-            if (commandNumber == GenericCommandNumber.LAP) {
-                Timber.d("BACK");
-                Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(KRemoteKeys.BACK);
-            }
-            if (commandNumber == GenericCommandNumber.UNRECOGNIZED) {
-                Timber.d("MAP");
-                Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(KRemoteKeys.MIDDLE);
-            }
-
+        if(newDeviceState == DeviceState.DEAD) {
+            Timber.d("ANT DEAD");
+            remote_key();
         }
-        return CommandStatus.PASS;
     };
+
+    private final AntPlusGenericControllableDevicePcc.IGenericCommandReceiver mRemoteCommand = this::onNewGenericCommand;
 
     // ANT end
 
@@ -108,6 +93,7 @@ public class KRemoteService extends Service {
 
     private void remote_key()
     {
+        Timber.d("Remote Key STARTED");
         close_ant_handler(remoteReleaseHandle);
         remoteReleaseHandle = AntPlusGenericControllableDevicePcc.requestAccess(this, mRemoteResultReceiver, mRemoteDeviceStateChangeReceiver, mRemoteCommand, 0);
     }
@@ -115,6 +101,7 @@ public class KRemoteService extends Service {
 
     private void close_ant_handler(PccReleaseHandle<AntPlusGenericControllableDevicePcc> remHandle)
     {
+        Timber.d("Close ant handler");
         if (remHandle!=null) remHandle.close();
     }
 
@@ -123,5 +110,31 @@ public class KRemoteService extends Service {
         Timber.d( "kservices onDestroy");
         close_ant_handler(remoteReleaseHandle);
         super.onDestroy();
+    }
+
+    private CommandStatus onNewGenericCommand(long estTimestamp, EnumSet<EventFlag> eventFlags, int serialNumber, int manufacturerID, int sequenceNumber, GenericCommandNumber commandNumber) {
+        Timber.d("Button pressed : %s", commandNumber);
+        if (!isAccessServiceEnabled) isAccessServiceEnabled = checkAccessServiceEnabled();
+        Timber.d("isAccessServiceEnabled : %s", isAccessServiceEnabled);
+        Timber.d("ThreadCount :  %s ", Thread.activeCount());
+        Thread actionthread = new Thread(() -> {
+            Timber.d("Thread Started N:%s", Thread.currentThread().getName());
+            if (isAccessServiceEnabled) {
+                if (commandNumber == GenericCommandNumber.MENU_DOWN) {
+                    Timber.d("IN ANTPLUS RIGHT");
+                    Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(KRemoteKeys.RIGHT);
+                }
+                if (commandNumber == GenericCommandNumber.LAP) {
+                    Timber.d("IN ANTPLUS BACK");
+                    Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(KRemoteKeys.BACK);
+                }
+                if (commandNumber == GenericCommandNumber.UNRECOGNIZED) {
+                    Timber.d("IN ANTPLUS  MAP");
+                    Objects.requireNonNull(KRemoteListen.getInstance()).doActionKarooScreen(KRemoteKeys.MIDDLE);
+                }
+            }
+        });
+        actionthread.start();
+        return CommandStatus.PASS;
     }
 }

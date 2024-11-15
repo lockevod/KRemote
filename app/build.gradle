@@ -101,6 +101,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.jakewharton.timber:timber:5.0.1'
+    implementation 'com.github.bastienpaulfr:Treessence:1.1.2'
     implementation files('libs/antpluginlib_3-9-0.aar')
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.2'

@@ -37,11 +37,13 @@ class KRemoteListen: AccessibilityService() {
 
     private fun executegesture (path: Path, gestureBuilder: GestureDescription.Builder, doublet: Boolean )
     {
+        Timber.d("IN Execute Gesture")
         if (doublet)
         {
             val stroke = StrokeDescription(path,0, ViewConfiguration.getTapTimeout().toLong())
             gestureBuilder.addStroke(stroke)
             gestureBuilder.addStroke(StrokeDescription(stroke.path,stroke.duration + 40,stroke.duration,stroke.willContinue()))
+            Timber.d("IN Execute Gesture Doublet")
         }
         else gestureBuilder.addStroke(StrokeDescription(path, timing, term))
 
@@ -66,6 +68,7 @@ class KRemoteListen: AccessibilityService() {
         var repeat = false
 
         // determine action
+        Timber.d("%s%s", "IN SwipeScreen. Button pressed: ", karoobutton)
         when (karoobutton)
         {
             KRemoteKeys.BACK ->{
@@ -74,7 +77,7 @@ class KRemoteListen: AccessibilityService() {
                 return
             }
             KRemoteKeys.RIGHT -> {
-                Timber.d("RIGHT remote pressed one time only!")
+                Timber.d("RIGHT remote pressed!")
                 path.moveTo(rightSizeOfScreen.toFloat(), middleYValue.toFloat())
                 path.lineTo(leftSideOfScreen.toFloat(), middleYValue.toFloat())
                 /*
@@ -119,7 +122,7 @@ class KRemoteListen: AccessibilityService() {
     }
 
     fun doActionKarooScreen(karoobutton: KRemoteKeys) {
-        Timber.d("%s%s", "Check On Ride ", isRideActivityProcess)
+        Timber.d("%s%s", "IN Do Action. Check On Ride ", isRideActivityProcess)
         if (isRideActivityProcess) {
             swipescreen(karoobutton)
         }

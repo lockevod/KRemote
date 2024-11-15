@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -16,6 +17,9 @@ import androidx.annotation.Nullable;
 
 import com.enderthor.kremote.services.IKRemoteService;
 import com.enderthor.kremote.services.KRemoteService;
+import com.enderthor.kremote.utils.FileLoggingTree;
+
+import java.io.File;
 
 import timber.log.Timber;
 
@@ -44,13 +48,16 @@ public class KRemoteApplication extends Application {
         checkAccessibilityPermission();
         if (BuildConfig.DEBUG) {
             // noinspection DataFlowIssue
-            Timber.plant((Timber.Tree) (Object) new Timber.DebugTree() {
-
+           /* Timber.plant((Timber.Tree) (Object) new Timber.DebugTree() {
                 @Override
                 protected void log(int priority, @Nullable String tag, @NonNull String message, @Nullable Throwable t) {
                     Log.println(priority, tag, message + (t == null ? "" : "\n" + t.getMessage() + "\n" + Log.getStackTraceString(t)));
                 }
-            });
+            });*/
+            File dir = new File("//sdcard//");
+            File logfile = new File(dir, "log.txt");
+            Timber.plant((Timber.Tree) (Object) new FileLoggingTree(logfile));
+
         } else {
             Timber.plant(new Timber.Tree() {
                 @Override
@@ -81,6 +88,11 @@ public class KRemoteApplication extends Application {
         if (accessEnabled == 0) {
 
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+            if (BuildConfig.DEBUG) {
+                intent.setAction(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                Uri uri = Uri.fromParts("package", this.getPackageName(), null);
+                intent.setData(uri);
+            }
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         }
