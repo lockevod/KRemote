@@ -1,3 +1,8 @@
+# WARNING
+
+This version is outdated and there won't be more upddates. The new version use Karoo Extensions
+
+
 # KRemote
 KRemote allows to use a Japanase Remote with Karoo, Kremote only can simulated physical karoo buttons. This app doesn't need karoo SDK because use android standard availability services.
 
